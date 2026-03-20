@@ -1,0 +1,38 @@
+name: Build NexusLauncher APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: gradle :app_pojavlauncher:assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NexusLauncher-debug
+          path: app_pojavlauncher/build/outputs/apk/**/*.apk
+          if-no-files-found: error
